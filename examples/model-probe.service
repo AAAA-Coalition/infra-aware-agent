@@ -1,0 +1,14 @@
+# Example: probe every model of the local LiteLLM gateway. The unit FAILS (exit 1) on a SEVERE
+# finding, so OnFailure= can page someone. Exit 2 (BLIND) fails too: a blind probe is not a green one.
+[Unit]
+Description=Model probe per usage (fallbacks disabled)
+OnFailure=notify-failure@%n.service
+
+[Service]
+Type=oneshot
+Environment=PROBE_GATEWAY=http://127.0.0.1:4000
+Environment=PROBE_KEY_FILE=/etc/litellm/probe.env
+Environment=PROBE_CONFIG=/etc/litellm/config.yaml
+Environment=PROBE_CONSUMERS=/etc/model-probe/consumers.json
+Environment=PROBE_OUT_DIR=/var/lib/model-probe
+ExecStart=/usr/bin/python3 -I /opt/infra-aware-agent/model_probe.py

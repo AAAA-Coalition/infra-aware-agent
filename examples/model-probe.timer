@@ -1,0 +1,9 @@
+[Unit]
+Description=Model probe, twice a day
+
+[Timer]
+OnCalendar=*-*-* 06:20,18:20
+Persistent=true
+
+[Install]
+WantedBy=timers.target

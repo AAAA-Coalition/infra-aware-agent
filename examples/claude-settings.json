@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python -I /path/to/infra-aware-agent/recall_hook.py", "timeout": 10 }
+        ]
+      }
+    ]
+  }
+}

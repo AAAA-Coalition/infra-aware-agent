@@ -1,0 +1,10 @@
+# Example: regenerate the data catalogue of THIS host every morning, as root (it must see every
+# directory and database it counts). Adjust paths; publish CATALOGUE.md wherever your agents read.
+[Unit]
+Description=Data catalogue (measured: databases, archives, rights, writers)
+
+[Service]
+Type=oneshot
+Environment=CATALOGUE_ROOTS=/opt:/srv:/var/lib:/home
+Environment=CATALOGUE_NEVER_OPEN=private-bot
+ExecStart=/usr/bin/python3 -I /opt/infra-aware-agent/data_catalogue.py --local --out /var/lib/data-catalogue/CATALOGUE.md

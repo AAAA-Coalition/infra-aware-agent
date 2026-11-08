@@ -1,0 +1,75 @@
+{
+ "$note": "EXAMPLE data. Copy to recall.json and replace with your own. One line = a short pointer (path, count, command), never a content and never a secret value. Adding an asset or a problem = adding an entry here; the registry is rendered from this file by recall_hook.py --render.",
+ "assets": [
+  {
+   "id": "A-MAIL-ARCHIVE",
+   "pattern": "\\b(e-?mails?|mail archive|inbox|mailbox)\\b",
+   "line": "MAIL ARCHIVE: /srv/mail-archive on host-a (written by mail-sync.service every 20 min); full-text index in Postgres container pg, table public.mail_chunks. Cite message id, subject and date; never copy a message."
+  },
+  {
+   "id": "A-CATALOGUE",
+   "pattern": "where (is|are|do|does)|\\bdatabases?\\b|\\barchives?\\b|\\binventory\\b|\\bcatalogue\\b",
+   "line": "WHERE THINGS ARE: CATALOGUE.md (databases, archives, rights, who writes them), regenerated every morning on each host by data-catalogue.timer. Read it BEFORE searching."
+  },
+  {
+   "id": "A-BOT-MEMORY",
+   "pattern": "\\b(memory|remember|recall)\\b",
+   "line": "BOT MEMORY: SQLite /var/lib/bot-memory/memory.sqlite, MCP server on 127.0.0.1 (scoped-memory.service); automatic recall in the gateway hook."
+  },
+  {
+   "id": "A-MODELS",
+   "pattern": "\\b(models?|llm|litellm|openrouter|fallbacks?)\\b",
+   "line": "MODELS: probe results in /var/lib/model-probe/probe_<time>.json (06:20 and 18:20, model-probe.timer); gateway config /etc/litellm/config.yaml."
+  }
+ ],
+ "problems": [
+  {
+   "id": "P-INVENTORY-GAP",
+   "pattern": "where (is|are)|\\bdatabases?\\b|not in (the|your) (map|inventory|catalogue)",
+   "symptom": "An asset exists but no map or inventory lists it.",
+   "cause": "The map only measured services, ports and timers, never data; and nothing regenerated it.",
+   "solution": "Data catalogue measured every day on each host; this recall injects the right pointer.",
+   "guard": "data-catalogue.timer"
+  },
+  {
+   "id": "P-EMPTY-START",
+   "pattern": "systemctl (start|restart)|\\bdeployed\\b|returned 0|exit code 0",
+   "symptom": "\"Deployed\" although nothing ran.",
+   "cause": "systemctl start returns 0 without running anything on a oneshot unit that is already active; inactive is not failed.",
+   "solution": "The proof of a run is a NEW ARTEFACT (a commit, a file, a dated log line), never a return code.",
+   "guard": "daily counter-checks"
+  },
+  {
+   "id": "P-BOT-SILENT",
+   "pattern": "couldn'?t generate a response|bot (is )?(silent|not answering|does not answer)",
+   "symptom": "A bot answers \"I couldn't generate a response\" or nothing at all.",
+   "cause": "Two MCP servers attached to the same agent exposed the SAME tool name; the platform dropped the turn before calling the model. Other causes seen: a reasoning model cut by max_tokens (empty content), a dead model.",
+   "solution": "List the tools of every MCP server of the agent and look for duplicates; then check the model probe.",
+   "guard": "tool-name prefix per server"
+  },
+  {
+   "id": "P-MODEL-DEAD",
+   "pattern": "\\bmodel\\b.*\\b(dead|404|503|gone|disappeared)\\b|\\bfallback\\b",
+   "symptom": "A model disappears and we learn it afterwards.",
+   "cause": "No probe per usage; a working fallback hides the dead model.",
+   "solution": "model_probe.py with fallbacks disabled: SEVERE = used, dead, and no live fallback.",
+   "guard": "model-probe.timer, unit fails on SEVERE"
+  },
+  {
+   "id": "P-SECRET-PRINTED",
+   "pattern": "\\b(secret|token|api key|password)\\b",
+   "symptom": "A secret appears in an output or a log.",
+   "cause": "Masking by FIELD NAME, or only at the first level of a nested structure.",
+   "solution": "Mask by VALUE SHAPE, recursively; never pass a secret as a command-line argument.",
+   "guard": "SECRET_SHAPE in data_catalogue.py refuses to write"
+  },
+  {
+   "id": "P-ABSENCE",
+   "pattern": "does not exist|doesn'?t exist|there is no|not found|nowhere",
+   "symptom": "The agent asserts that something does not exist, and it does.",
+   "cause": "A truncated search, or a search in the wrong place, turned into a general conclusion.",
+   "solution": "Write \"not at <the exact place looked at>\" and NAME the place; read the catalogue first.",
+   "guard": "this recall"
+  }
+ ]
+}
